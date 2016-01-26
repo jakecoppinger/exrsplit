@@ -13,6 +13,7 @@ def usage():
 			'\t-m\t\tMerge channels (default)\n'
 			'\t-s\t\tSplit channels\n'
 			'\t-v\t\tVerbose mode\n'
+			'\t-n\t\tRemove period from channel name \n\t\t\t(may fix Python \'KeyError\')\n'
 			'See "man exrsplit" for more information.')
 	exit(1)
 
@@ -28,6 +29,9 @@ output_format = 0	# 0 = exr, 1 = png
 verbose = False
 merge = True		# merge channels from the same layer in a single image
 
+# Defaulting to the channel syntax for Blender,
+# <layer name>.<color channel>
+periodInChannelName = True 
 
 for arg in argv[1:-1]:
 	if arg == '-exr':
@@ -40,6 +44,8 @@ for arg in argv[1:-1]:
 		merge = False
 	elif arg == '-v':
 		verbose = True
+	elif arg == '-n':
+		periodInChannelName = False
 	else:
 		print 'Unknown option: ' + arg
 		usage()
@@ -66,6 +72,10 @@ if merge:
 	# in a dictionary.
 	# Blender names the channels as <layer name>.<color channel> (eg. RenderLayer.Combined.r).
 	# The search is required since the layers aren't kept in sorted sequence
+	# 
+	# Other programs (e.g. Terragen 3) use the format <layer name><color channel> (without a 
+	# period).
+
 	outfiles = {}	# the dictionary keeps each layer as a key with the channels as a list
 	for layer in header['channels']:
 		if verbose:
@@ -86,8 +96,10 @@ if merge:
 		out_pixel_formats = {}
 		for channel in outfiles[layer]:
 			# For each channel, let's copy the same channel format from the original layer:
-			out_header['channels'][channel] = header['channels'][layer + '.' + channel]
-			out_pixel_formats[channel] = exr_file.channel(layer + '.' + channel)
+			separater = '.' if periodInChannelName else ''
+
+			out_header['channels'][channel] = header['channels'][layer + separater + channel]
+			out_pixel_formats[channel] = exr_file.channel(layer + separater  + channel)
 		if verbose:
 			print str(i) + '/' + str(totalfiles) + '\tGenerating ' + layer + '.exr with channels ' + str(out_header['channels'].keys())
 			i += 1

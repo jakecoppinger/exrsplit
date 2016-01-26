@@ -39,10 +39,10 @@ Install Python bindings
 ### 4. Install Imagemagick
 
 Mac:
-`brew install imagemagick`
+`brew install imagemagick  --with-openexr`
 
 Ubuntu:
-`sudo apt-get install imagemagick`
+`sudo apt-get install imagemagick --with-openexr` 
 
 Author
 ------
